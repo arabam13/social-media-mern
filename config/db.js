@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 mongoose
   .connect(
-    "mongodb+srv://" + process.env.DB_USER_PASS + "@cluster0.iuzir.mongodb.net/mern-project",
+    "mongodb+srv://" + process.env.DB_USER_PASS + "@social-media.9njin.mongodb.net/social-media-mern",
     {
       useNewUrlParser: true,
       useUnifiedTopology: true,

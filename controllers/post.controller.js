@@ -4,8 +4,9 @@ const UserModel = require("../models/user.model");
 const { uploadErrors } = require("../utils/errors.utils");
 const ObjectID = require("mongoose").Types.ObjectId;
 const fs = require("fs");
-const { promisify } = require("util");
-const pipeline = promisify(require("stream").pipeline);
+const streamifier = require('streamifier');
+// const { promisify } = require("util");
+// const pipeline = promisify(require("stream").pipeline);
 
 module.exports.readPost = (req, res) => {
   PostModel.find((err, docs) => {
@@ -19,26 +20,32 @@ module.exports.createPost = async (req, res) => {
 
   if (req.file !== null) {
     try {
+      // console.log(req.file);
       if (
-        req.file.detectedMimeType != "image/jpg" &&
-        req.file.detectedMimeType != "image/png" &&
-        req.file.detectedMimeType != "image/jpeg"
+        req.file.mimetype != 'image/jpeg' &&
+        req.file.mimetype != 'image/png' &&
+        req.file.mimetype != 'image/jpg' 
+
       )
         throw Error("invalid file");
 
       if (req.file.size > 500000) throw Error("max size");
-    } catch (err) {
-      const errors = uploadErrors(err);
-      return res.status(201).json({ errors });
+
+    } catch (err) {;
+        const errors = uploadErrors(err);
+        return res.status(201).json({ errors });
     }
     fileName = req.body.posterId + Date.now() + ".jpg";
 
-    await pipeline(
-      req.file.stream,
-      fs.createWriteStream(
-        `${__dirname}/../client/public/uploads/posts/${fileName}`
-      )
-    );
+    // await pipeline(
+    //   req.file.stream,
+    //   fs.createWriteStream(
+    //     `${__dirname}/../client/public/uploads/posts/${fileName}`
+    //   )
+    // );
+    await streamifier.createReadStream(req.file.buffer)
+                  .pipe(fs.createWriteStream(`${__dirname}/../../client/public/uploads/posts/${fileName}`));
+
   }
 
   const newPost = new postModel({
