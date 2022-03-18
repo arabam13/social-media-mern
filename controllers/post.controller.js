@@ -1,10 +1,10 @@
-const postModel = require("../models/post.model");
+// const postModel = require("../models/post.model");
 const PostModel = require("../models/post.model");
 const UserModel = require("../models/user.model");
 const { uploadErrors } = require("../utils/errors.utils");
 const ObjectID = require("mongoose").Types.ObjectId;
 const fs = require("fs");
-const streamifier = require('streamifier');
+const streamifier = require("streamifier");
 // const { promisify } = require("util");
 // const pipeline = promisify(require("stream").pipeline);
 
@@ -22,18 +22,16 @@ module.exports.createPost = async (req, res) => {
     try {
       // console.log(req.file);
       if (
-        req.file.mimetype != 'image/jpeg' &&
-        req.file.mimetype != 'image/png' &&
-        req.file.mimetype != 'image/jpg' 
-
+        req.file.mimetype != "image/jpeg" &&
+        req.file.mimetype != "image/png" &&
+        req.file.mimetype != "image/jpg"
       )
         throw Error("invalid file");
 
       if (req.file.size > 500000) throw Error("max size");
-
-    } catch (err) {;
-        const errors = uploadErrors(err);
-        return res.status(201).json({ errors });
+    } catch (err) {
+      const errors = uploadErrors(err);
+      return res.status(201).json({ errors });
     }
     fileName = req.body.posterId + Date.now() + ".jpg";
 
@@ -43,12 +41,16 @@ module.exports.createPost = async (req, res) => {
     //     `${__dirname}/../client/public/uploads/posts/${fileName}`
     //   )
     // );
-    await streamifier.createReadStream(req.file.buffer)
-                  .pipe(fs.createWriteStream(`${__dirname}/../../client/public/uploads/posts/${fileName}`));
-
+    await streamifier
+      .createReadStream(req.file.buffer)
+      .pipe(
+        fs.createWriteStream(
+          `${__dirname}/../../client/public/uploads/posts/${fileName}`
+        )
+      );
   }
 
-  const newPost = new postModel({
+  const newPost = new PostModel({
     posterId: req.body.posterId,
     message: req.body.message,
     picture: req.file !== null ? "./uploads/posts/" + fileName : "",
@@ -104,21 +106,30 @@ module.exports.likePost = async (req, res) => {
       {
         $addToSet: { likers: req.body.id },
       },
-      { new: true })
-      .then((data) => res.send(data))
-      .catch((err) => res.status(500).send({ message: err }));
+      { new: true },
+      (err, docs) => {
+        if (!err) return res.send(docs);
+        else return res.status(500).send({ message: err });
+      }
+    );
+    // .then((data) => res.send(data))
+    // .catch((err) => res.status(400).send({ message: err }));
 
     await UserModel.findByIdAndUpdate(
       req.body.id,
       {
         $addToSet: { likes: req.params.id },
       },
-      { new: true })
-            .then((data) => res.send(data))
-            .catch((err) => res.status(500).send({ message: err }));
-    } catch (err) {
-        return res.status(400).send(err);
-    }
+      { new: true },
+      (err) => {
+        if (err) return res.status(500).send({ message: err });
+      }
+    );
+    // .then((data) => res.send(data))
+    // .catch((err) => res.status(400).send({ message: err }));
+  } catch (err) {
+    return res.status(400).send(err);
+  }
 };
 
 module.exports.unlikePost = async (req, res) => {
@@ -131,21 +142,28 @@ module.exports.unlikePost = async (req, res) => {
       {
         $pull: { likers: req.body.id },
       },
-      { new: true })
-            .then((data) => res.send(data))
-            .catch((err) => res.status(500).send({ message: err }));
+      { new: true },
+      (err, docs) => {
+        if (!err) return res.send(docs);
+        else return res.status(500).send({ message: err });
+      }
+    );
+    // .then((data) => res.send(data))
+    // .catch((err) => res.status(400).send({ message: err }));
 
     await UserModel.findByIdAndUpdate(
       req.body.id,
       {
         $pull: { likes: req.params.id },
       },
-      { new: true })
-            .then((data) => res.send(data))
-            .catch((err) => res.status(500).send({ message: err }));
-    } catch (err) {
-        return res.status(400).send(err);
-    }
+      { new: true },
+      (err) => {
+        if (err) return res.status(500).send({ message: err });
+      }
+    );
+  } catch (err) {
+    return res.status(400).send(err);
+  }
 };
 
 module.exports.commentPost = (req, res) => {
@@ -165,12 +183,13 @@ module.exports.commentPost = (req, res) => {
           },
         },
       },
-      { new: true })
-            .then((data) => res.send(data))
-            .catch((err) => res.status(500).send({ message: err }));
-    } catch (err) {
-        return res.status(400).send(err);
-    }
+      { new: true }
+    )
+      .then((data) => res.send(data))
+      .catch((err) => res.status(400).send({ message: err }));
+  } catch (err) {
+    return res.status(400).send(err);
+  }
 };
 
 module.exports.editCommentPost = (req, res) => {
@@ -188,7 +207,7 @@ module.exports.editCommentPost = (req, res) => {
 
       return docs.save((err) => {
         if (!err) return res.status(200).send(docs);
-        return res.status(500).send(err);
+        return res.status(400).send(err);
       });
     });
   } catch (err) {
@@ -210,10 +229,11 @@ module.exports.deleteCommentPost = (req, res) => {
           },
         },
       },
-      { new: true })
-            .then((data) => res.send(data))
-            .catch((err) => res.status(500).send({ message: err }));
-    } catch (err) {
-        return res.status(400).send(err);
-    }
+      { new: true }
+    )
+      .then((data) => res.send(data))
+      .catch((err) => res.status(400).send({ message: err }));
+  } catch (err) {
+    return res.status(400).send(err);
+  }
 };
