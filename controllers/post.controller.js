@@ -18,7 +18,9 @@ module.exports.readPost = (req, res) => {
 module.exports.createPost = async (req, res) => {
   let fileName;
 
-  if (req.file !== null) {
+  console.log(req.file);
+  // if (req.file !== null) {
+  if (req.file !== undefined) {
     try {
       // console.log(req.file);
       if (
@@ -50,18 +52,19 @@ module.exports.createPost = async (req, res) => {
       );
   }
 
-  const newPost = new PostModel({
+  const newPost = {
     posterId: req.body.posterId,
     message: req.body.message,
-    picture: req.file !== null ? "./uploads/posts/" + fileName : "",
+    picture: req.file !== undefined ? "./uploads/posts/" + fileName : "",
     video: req.body.video,
     likers: [],
     comments: [],
-  });
+  };
 
   try {
-    const post = await newPost.save();
-    return res.status(201).json(post);
+    const post = await PostModel.create(newPost);
+    // const post = await newPost.save();
+    return res.status(201).send(post);
   } catch (err) {
     return res.status(400).send(err);
   }
@@ -89,6 +92,24 @@ module.exports.updatePost = (req, res) => {
 module.exports.deletePost = (req, res) => {
   if (!ObjectID.isValid(req.params.id))
     return res.status(400).send("ID unknown : " + req.params.id);
+
+  //supprimer le fichier créé dans le repertoire public/post
+  // PostModel.findById(req.params.id, (err, docs) => {
+  //   if (!err) {
+  //     if (docs !== undefined) {
+  //       fs.unlinkSync(
+  //         `${__dirname}/../../client/public` + docs.picture.slice(1),
+  //         (err) => {
+  //           if (err) {
+  //             console.error(err);
+  //           }
+  //         }
+  //       );
+  //     }
+  //   } else {
+  //     console.error(err);
+  //   }
+  // });
 
   PostModel.findByIdAndRemove(req.params.id, (err, docs) => {
     if (!err) res.send(docs);
