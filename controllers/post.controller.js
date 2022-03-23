@@ -18,7 +18,7 @@ module.exports.readPost = (req, res) => {
 module.exports.createPost = async (req, res) => {
   let fileName;
 
-  console.log(req.file);
+  // console.log(req.file);
   // if (req.file !== null) {
   if (req.file !== undefined) {
     try {
@@ -37,12 +37,6 @@ module.exports.createPost = async (req, res) => {
     }
     fileName = req.body.posterId + Date.now() + ".jpg";
 
-    // await pipeline(
-    //   req.file.stream,
-    //   fs.createWriteStream(
-    //     `${__dirname}/../client/public/uploads/posts/${fileName}`
-    //   )
-    // );
     await streamifier
       .createReadStream(req.file.buffer)
       .pipe(
@@ -94,22 +88,23 @@ module.exports.deletePost = (req, res) => {
     return res.status(400).send("ID unknown : " + req.params.id);
 
   //supprimer le fichier créé dans le repertoire public/post
-  // PostModel.findById(req.params.id, (err, docs) => {
-  //   if (!err) {
-  //     if (docs !== undefined) {
-  //       fs.unlinkSync(
-  //         `${__dirname}/../../client/public` + docs.picture.slice(1),
-  //         (err) => {
-  //           if (err) {
-  //             console.error(err);
-  //           }
-  //         }
-  //       );
-  //     }
-  //   } else {
-  //     console.error(err);
-  //   }
-  // });
+  PostModel.findById(req.params.id, (err, docs) => {
+    if (!err) {
+      if (docs.picture !== "" || docs.picture !== null) {
+        let path = `${__dirname}/../../client/public` + docs.picture.slice(1);
+        if (fs.existsSync(path)) {
+          // console.log("file exists!!");
+          fs.unlink(path, (err) => {
+            if (err) {
+              console.error(err);
+            }
+          });
+        }
+      }
+    } else {
+      console.error(err);
+    }
+  });
 
   PostModel.findByIdAndRemove(req.params.id, (err, docs) => {
     if (!err) res.send(docs);
