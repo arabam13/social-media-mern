@@ -87,7 +87,7 @@ module.exports.deletePost = (req, res) => {
   if (!ObjectID.isValid(req.params.id))
     return res.status(400).send("ID unknown : " + req.params.id);
 
-  //supprimer le fichier créé dans le repertoire public/post
+  //supprimer le fichier créé dans le repertoire client/public/uploads/post
   PostModel.findById(req.params.id, (err, docs) => {
     if (!err) {
       if (docs.picture !== "" || docs.picture !== null) {
