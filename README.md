@@ -4,8 +4,13 @@
 
 Demarrer le server : `npm start`
 
-Démarrer le front: `cd client` + `npm start`
-
+Démarrer le front (ouvrir la console CMD en mode admin): 
+                     `nvm install 12.18.3`
+                     `nvm list`
+                     `nvm use 12.18.3`
+                     `cd client` + `npm start`
+                     `nvm use 16.*.*` (dernière version NODE installée sur votre PC)
+                     
 _____________________________
 
 ### Back config :
