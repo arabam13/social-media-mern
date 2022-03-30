@@ -41,7 +41,7 @@ module.exports.createPost = async (req, res) => {
       .createReadStream(req.file.buffer)
       .pipe(
         fs.createWriteStream(
-          `${__dirname}/../../client/public/uploads/posts/${fileName}`
+          `${__dirname}/../client/public/uploads/posts/${fileName}`
         )
       );
   }
