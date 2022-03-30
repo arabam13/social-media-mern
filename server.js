@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const userRoutes = require("./routes/user.routes");
@@ -26,6 +27,7 @@ app.use(cookieParser());
 
 // jwt
 app.get("*", checkUser);
+
 app.get("/jwtid", requireAuth, (req, res) => {
   res.status(200).send(res.locals.user._id);
 });
@@ -33,6 +35,9 @@ app.get("/jwtid", requireAuth, (req, res) => {
 // routes
 app.use("/api/user", userRoutes);
 app.use("/api/post", postRoutes);
+
+// pour env de prod
+app.use(express.static(path.join(__dirname, "/client/build")));
 
 // server
 app.listen(process.env.PORT, () => {
