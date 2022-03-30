@@ -91,7 +91,7 @@ module.exports.deletePost = (req, res) => {
   PostModel.findById(req.params.id, (err, docs) => {
     if (!err) {
       if (docs.picture !== "" || docs.picture !== null) {
-        let path = `${__dirname}/../../client/public` + docs.picture.slice(1);
+        let path = `${__dirname}/../client/public` + docs.picture.slice(1);
         if (fs.existsSync(path)) {
           // console.log("file exists!!");
           fs.unlink(path, (err) => {
