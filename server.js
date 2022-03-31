@@ -37,7 +37,16 @@ app.use("/api/user", userRoutes);
 app.use("/api/post", postRoutes);
 
 // pour env de prod
-app.use(express.static(path.join(__dirname, "/client/build")));
+if (process.env.ENVIR === "PROD") {
+  console.log(`Api is running in PROD ENVIR..`);
+  app.use(express.static(path.join(__dirname, "/client/build")));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "/client/build", "index.html"));
+  });
+} else {
+  console.log(`Api is running in DEV ENVIR..`);
+}
 
 // server
 app.listen(process.env.PORT, () => {
