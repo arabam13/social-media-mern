@@ -4,6 +4,7 @@ const streamifier = require("streamifier");
 // const { promisify } = require("util");
 // const pipeline = promisify(require("stream").pipeline);
 const { uploadErrors } = require("../utils/errors.utils");
+const path = require("path");
 
 module.exports.uploadProfil = async (req, res) => {
   try {
@@ -22,13 +23,14 @@ module.exports.uploadProfil = async (req, res) => {
   }
 
   const fileName = req.body.name + ".jpg";
+
+  let path_file;
+  // path_file = `${__dirname}/../client/public/uploads/profil`;
+  path_file = path.join(__dirname, "../client/public/uploads/profil");
+
   streamifier
     .createReadStream(req.file.buffer)
-    .pipe(
-      fs.createWriteStream(
-        `${__dirname}/../client/public/uploads/profil/${fileName}`
-      )
-    );
+    .pipe(fs.createWriteStream(`${path_file}/${fileName}`));
 
   try {
     await UserModel.findByIdAndUpdate(
