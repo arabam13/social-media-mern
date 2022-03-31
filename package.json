@@ -2,10 +2,13 @@
   "name": "mern-project",
   "version": "1.0.0",
   "description": "",
+  "engines": {
+    "node": "16.14.2"
+  },
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
-    "heroku-postbuild": "cd client && nvm install 12.18.3 && nvm use 12.18.3 && npm install && npm run build"
+    "heroku-postbuild": "cd client && npm install && npm run build"
   },
   "keywords": [],
   "author": "",
