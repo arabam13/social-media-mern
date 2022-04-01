@@ -5,8 +5,7 @@ const { uploadErrors } = require("../utils/errors.utils");
 const ObjectID = require("mongoose").Types.ObjectId;
 const fs = require("fs");
 const streamifier = require("streamifier");
-// const { promisify } = require("util");
-// const pipeline = promisify(require("stream").pipeline);
+const path = require("path");
 
 module.exports.readPost = (req, res) => {
   PostModel.find((err, docs) => {
@@ -22,7 +21,6 @@ module.exports.createPost = async (req, res) => {
   // if (req.file !== null) {
   if (req.file !== undefined) {
     try {
-      // console.log(req.file);
       if (
         req.file.mimetype != "image/jpeg" &&
         req.file.mimetype != "image/png" &&
@@ -37,13 +35,12 @@ module.exports.createPost = async (req, res) => {
     }
     fileName = req.body.posterId + Date.now() + ".jpg";
 
+    const __dirname = path.resolve();
+    const path_file = path.join(__dirname, "client/public/uploads/posts");
+
     await streamifier
       .createReadStream(req.file.buffer)
-      .pipe(
-        fs.createWriteStream(
-          `${__dirname}/../client/public/uploads/posts/${fileName}`
-        )
-      );
+      .pipe(fs.createWriteStream(path.join(path_file, fileName)));
   }
 
   const newPost = {
@@ -87,14 +84,16 @@ module.exports.deletePost = (req, res) => {
   if (!ObjectID.isValid(req.params.id))
     return res.status(400).send("ID unknown : " + req.params.id);
 
+  const __dirname = path.resolve();
+  const path_file = path.join(__dirname, "client/public");
   //supprimer le fichier créé dans le repertoire client/public/uploads/post
   PostModel.findById(req.params.id, (err, docs) => {
     if (!err) {
       if (docs.picture !== "" || docs.picture !== null) {
-        let path = `${__dirname}/../client/public` + docs.picture.slice(1);
-        if (fs.existsSync(path)) {
+        let pathWithFile = `${path_file}` + docs.picture.slice(1);
+        if (fs.existsSync(pathWithFile)) {
           // console.log("file exists!!");
-          fs.unlink(path, (err) => {
+          fs.unlink(pathWithFile, (err) => {
             if (err) {
               console.error(err);
             }
