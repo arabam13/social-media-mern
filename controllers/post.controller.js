@@ -3,9 +3,9 @@ const PostModel = require("../models/post.model");
 const UserModel = require("../models/user.model");
 const { uploadErrors } = require("../utils/errors.utils");
 const ObjectID = require("mongoose").Types.ObjectId;
-const fs = require("fs");
-const streamifier = require("streamifier");
-const path = require("path");
+// const fs = require("fs");
+// const streamifier = require("streamifier");
+// const path = require("path");
 
 module.exports.readPost = (req, res) => {
   PostModel.find((err, docs) => {
@@ -15,46 +15,34 @@ module.exports.readPost = (req, res) => {
 };
 
 module.exports.createPost = async (req, res) => {
-  let fileName;
-
-  // console.log(req.file);
-  // if (req.file !== null) {
-  if (req.file !== undefined) {
-    try {
+  try {
+    // console.log(req.body);
+    if (req.body.fileType && req.body.fileSize) {
       if (
-        req.file.mimetype != "image/jpeg" &&
-        req.file.mimetype != "image/png" &&
-        req.file.mimetype != "image/jpg"
+        req.body.fileType != "image/jpeg" &&
+        req.body.fileType != "image/png" &&
+        req.body.fileType != "image/jpg"
       )
         throw Error("invalid file");
 
-      if (req.file.size > 500000) throw Error("max size");
-    } catch (err) {
-      const errors = uploadErrors(err);
-      return res.status(201).json({ errors });
+      if (req.body.fileSize > 500000) throw Error("max size");
     }
-    fileName = req.body.posterId + Date.now() + ".jpg";
-
-    const __dirname = path.resolve();
-    const path_file = path.join(__dirname, "client/public/uploads/posts");
-
-    await streamifier
-      .createReadStream(req.file.buffer)
-      .pipe(fs.createWriteStream(path.join(path_file, fileName)));
+  } catch (err) {
+    const errors = uploadErrors(err);
+    return res.status(201).json({ errors });
   }
-
   const newPost = {
     posterId: req.body.posterId,
     message: req.body.message,
-    picture: req.file !== undefined ? "./uploads/posts/" + fileName : "",
-    video: req.body.video,
+    picture: req.body.urlImage ? req.body.urlImage : "",
+    video: req.body.video ? req.body.video : "",
     likers: [],
     comments: [],
   };
 
   try {
     const post = await PostModel.create(newPost);
-    // const post = await newPost.save();
+    // const post = await new PostModel(newPost).save();
     return res.status(201).send(post);
   } catch (err) {
     return res.status(400).send(err);
@@ -83,27 +71,6 @@ module.exports.updatePost = (req, res) => {
 module.exports.deletePost = (req, res) => {
   if (!ObjectID.isValid(req.params.id))
     return res.status(400).send("ID unknown : " + req.params.id);
-
-  const __dirname = path.resolve();
-  const path_file = path.join(__dirname, "client/public");
-  //supprimer le fichier créé dans le repertoire client/public/uploads/post
-  PostModel.findById(req.params.id, (err, docs) => {
-    if (!err) {
-      if (docs.picture !== "" || docs.picture !== null) {
-        let pathWithFile = `${path_file}` + docs.picture.slice(1);
-        if (fs.existsSync(pathWithFile)) {
-          // console.log("file exists!!");
-          fs.unlink(pathWithFile, (err) => {
-            if (err) {
-              console.error(err);
-            }
-          });
-        }
-      }
-    } else {
-      console.error(err);
-    }
-  });
 
   PostModel.findByIdAndRemove(req.params.id, (err, docs) => {
     if (!err) res.send(docs);
